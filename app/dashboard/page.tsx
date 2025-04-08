@@ -67,7 +67,6 @@ export default function FacultyDashboard() {
       prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]
     );
   };
-
   const downloadPDF = async (studentIds: string[], filename: string) => {
     try {
       const res = await fetch('/api/pdf/generate', {
@@ -75,21 +74,21 @@ export default function FacultyDashboard() {
         body: JSON.stringify({ ids: studentIds }),
         headers: { 'Content-Type': 'application/json' },
       });
-
+  
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.message || 'Failed to generate PDF');
       }
-
-      const { url } = await res.json();
-      console.log('Download URL:', url);
-
+  
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error downloading PDF:', error);
       alert('Failed to download PDF: ' + (error instanceof Error ? error.message : 'Unknown error'));

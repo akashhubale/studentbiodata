@@ -1,7 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'; // Removed PDFPage
-import path from 'path';
-import fs from 'fs/promises';
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import dbConnect from '@/lib/dbConnect';
 import StudentBiodata from '@/models/studentbiodata';
 import axios from 'axios';
@@ -33,7 +31,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     for (const [index, student] of students.entries()) {
       const page = pdfDoc.addPage([612, 792]);
       console.log(`Processing student ${index + 1}: ${student.name}`);
-      console.log('Page dimensions:', { width: page.getWidth(), height: page.getHeight() });
 
       const drawText = (text: string, x: number, y: number, size = 10) => {
         page.drawText(text || 'N/A', { x, y, size, font, color: rgb(0, 0, 0) });
@@ -70,47 +67,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         try {
           console.log(`Fetching image for ${student.name}: ${student.imageUrl}`);
           const imageRes = await axios.get(student.imageUrl, { responseType: 'arraybuffer' });
-          const imageBytes = imageRes.data;
-          console.log('Image bytes fetched, size:', imageBytes.byteLength);
+          const imageBytes = Buffer.from(imageRes.data);
+          console.log('Image bytes fetched, size:', imageBytes.length);
           let image;
           try {
             image = await pdfDoc.embedJpg(imageBytes);
-          } catch (e: unknown) { // Fixed: 'any' to 'unknown'
-            console.log(`Image is not JPG, trying PNG: ${(e as Error).message}`);
+          } catch (e) {
+            console.log(`Image is not JPG, trying PNG: ${(e instanceof Error ? e.message : String(e))}`);
             image = await pdfDoc.embedPng(imageBytes);
           }
 
           const imgDims = image.scale(0.25);
-          const x = 400;
-          const y = 700;
-          page.drawImage(image, { x, y, width: imgDims.width, height: imgDims.height });
+          page.drawImage(image, { x: 400, y: 700, width: imgDims.width, height: imgDims.height });
           console.log(`Image embedded for ${student.name}, dimensions:`, { width: imgDims.width, height: imgDims.height });
-        } catch (imageError: unknown) { // Fixed: 'any' to 'unknown'
-          console.error(`Failed to embed image for ${student.name}:`, (imageError as Error).message);
+        } catch (imageError) {
+          console.error(`Failed to embed image for ${student.name}:`, imageError instanceof Error ? imageError.message : String(imageError));
         }
       }
     }
 
     const pdfBytes = await pdfDoc.save();
     console.log('PDF bytes generated, size:', pdfBytes.length);
-    console.log('First few bytes of PDF:', pdfBytes.slice(0, 10).toString());
 
-    const fileName = `student_biodata_${Date.now()}.pdf`;
-    const outputPath = path.join(process.cwd(), 'public', 'downloads', fileName);
-
-    console.log('Saving PDF to:', outputPath);
-    await fs.mkdir(path.dirname(outputPath), { recursive: true });
-    await fs.writeFile(outputPath, pdfBytes);
-    const fileStats = await fs.stat(outputPath);
-    console.log('PDF saved successfully, size on disk:', fileStats.size);
-
-    const savedBytes = await fs.readFile(outputPath);
-    console.log('Saved file first few bytes:', savedBytes.slice(0, 10).toString('hex'));
-
-    const downloadUrl = `/downloads/${fileName}`;
-    res.status(200).json({ url: downloadUrl });
-  } catch (error: unknown) { // Fixed: 'any' to 'unknown'
-    console.error('PDF generation error:', (error as Error).message);
-    res.status(500).json({ message: 'Internal Server Error', error: (error as Error).message });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="students_${Date.now()}.pdf"`);
+    res.status(200).send(pdfBytes);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('PDF generation error:', errorMessage);
+    res.status(500).json({ message: 'Internal Server Error', error: errorMessage });
   }
 }
