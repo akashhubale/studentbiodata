@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React, { useState } from 'react';
 import axios from 'axios';
 
@@ -119,6 +119,7 @@ const StudentBiodataForm: React.FC = () => {
       return { ...prev, [section]: updatedArray };
     });
   };
+
   const addArrayItem = (section: 'projectDetails' | 'participation' | 'phoneDiary' | 'parentsVisit') => {
     setFormData(prev => {
       switch (section) {
@@ -155,7 +156,7 @@ const StudentBiodataForm: React.FC = () => {
             ]
           };
         default:
-          return prev; // Fallback for unhandled cases
+          return prev;
       }
     });
   };
@@ -173,7 +174,6 @@ const StudentBiodataForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
   
-    // Validate required fields (non-empty strings)
     if (
       !formData.name.trim() || 
       !formData.sectionAndRollNo.trim() || 
@@ -186,7 +186,6 @@ const StudentBiodataForm: React.FC = () => {
     }
   
     try {
-      // Upload image to Cloudinary
       const cloudinaryData = new FormData();
       cloudinaryData.append('file', formData.image as File);
       cloudinaryData.append('upload_preset', 'datahunk');
@@ -199,7 +198,6 @@ const StudentBiodataForm: React.FC = () => {
   
       const imageUrl = cloudinaryResponse.data.secure_url;
   
-      // Prepare backend data
       const backendData = new FormData();
       for (const [key, value] of Object.entries(formData)) {
         if (key === 'image') {
@@ -224,7 +222,6 @@ const StudentBiodataForm: React.FC = () => {
       console.log('Form submitted successfully:', result);
       alert('Student biodata submitted successfully!');
   
-      // Reset form
       setFormData({
         name: '',
         sectionAndRollNo: '',
@@ -272,7 +269,6 @@ const StudentBiodataForm: React.FC = () => {
     }
   };
 
-
   const nextStep = () => setStep(prev => prev + 1);
   const prevStep = () => setStep(prev => prev - 1);
 
@@ -295,17 +291,17 @@ const StudentBiodataForm: React.FC = () => {
           <div className="space-y-4">
             <h3 className="text-xl font-semibold text-gray-800">Family Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div><label className="block text-sm font-medium text-gray-700">Father's Name</label><input type="text" name="fatherName" value={formData.fatherName} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" /></div>
-              <div><label className="block text-sm font-medium text-gray-700">Father's Occupation</label><input type="text" name="fatherOccupation" value={formData.fatherOccupation} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" /></div>
-              <div><label className="block text-sm font-medium text-gray-700">Father's Office Phone</label><input type="tel" name="fatherPhoneOffice" value={formData.fatherPhoneOffice} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" /></div>
+              <div><label className="block text-sm font-medium text-gray-700">Father&apos;s Name</label><input type="text" name="fatherName" value={formData.fatherName} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" /></div>
+              <div><label className="block text-sm font-medium text-gray-700">Father&apos;s Occupation</label><input type="text" name="fatherOccupation" value={formData.fatherOccupation} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" /></div>
+              <div><label className="block text-sm font-medium text-gray-700">Father&apos;s Office Phone</label><input type="tel" name="fatherPhoneOffice" value={formData.fatherPhoneOffice} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" /></div>
               <div><label className="block text-sm font-medium text-gray-700">Residence Phone</label><input type="tel" name="residencePhone" value={formData.residencePhone} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" /></div>
-              <div><label className="block text-sm font-medium text-gray-700">Student Mobile</label><input type="tel" name="studentMobile" value={formData.studentMobile} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" /></div>
-              <div><label className="block text-sm font-medium text-gray-700">Father's Mobile</label><input type="tel" name="fatherMobile" value={formData.fatherMobile} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" /></div>
-              <div><label className="block text-sm font-medium text-gray-700">Mother's Mobile</label><input type="tel" name="motherMobile" value={formData.motherMobile} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" /></div>
-              <div><label className="block text-sm font-medium text-gray-700">Student Email</label><input type="email" name="studentEmail" value={formData.studentEmail} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" /></div>
-              <div><label className="block text-sm font-medium text-gray-700">Father's Email</label><input type="email" name="fatherEmail" value={formData.fatherEmail} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" /></div>
-              <div className="col-span-2"><label className="block text-sm font-medium text-gray-700">Permanent Address</label><textarea name="permanentAddress" value={formData.permanentAddress} onChange={handleChange} className="mt-1 block w-full rounded-md CLEAN border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" /></div>
-              <div className="col-span-2"><label className="block text-sm font-medium text-gray-700">Father's Office Address</label><textarea name="fatherOfficeAddress" value={formData.fatherOfficeAddress} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" /></div>
+              <div><label className="block text-sm font-medium text-gray-700">Student&apos;s Mobile</label><input type="tel" name="studentMobile" value={formData.studentMobile} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" /></div>
+              <div><label className="block text-sm font-medium text-gray-700">Father&apos;s Mobile</label><input type="tel" name="fatherMobile" value={formData.fatherMobile} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" /></div>
+              <div><label className="block text-sm font-medium text-gray-700">Mother&apos;s Mobile</label><input type="tel" name="motherMobile" value={formData.motherMobile} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" /></div>
+              <div><label className="block text-sm font-medium text-gray-700">Student&apos;s Email</label><input type="email" name="studentEmail" value={formData.studentEmail} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" /></div>
+              <div><label className="block text-sm font-medium text-gray-700">Father&apos;s Email</label><input type="email" name="fatherEmail" value={formData.fatherEmail} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" /></div>
+              <div className="col-span-2"><label className="block text-sm font-medium text-gray-700">Permanent Address</label><textarea name="permanentAddress" value={formData.permanentAddress} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" /></div>
+              <div className="col-span-2"><label className="block text-sm font-medium text-gray-700">Father&apos;s Office Address</label><textarea name="fatherOfficeAddress" value={formData.fatherOfficeAddress} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" /></div>
             </div>
           </div>
         );

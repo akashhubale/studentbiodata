@@ -80,13 +80,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ message: 'Missing required fields: name, sectionAndRollNo, branch, dateOfBirth, and imageUrl are required' });
     }
 
-    // Safe parsing helper
-    const safeParse = (value: string | undefined, defaultValue: any) => {
+    // Safe parsing helper with generic type
+    const safeParse = <T>(value: string | undefined, defaultValue: T): T => {
       if (!value || typeof value !== 'string') return defaultValue;
       try {
-        return JSON.parse(value);
-      } catch (error) {
-        console.error(`Failed to parse ${value}:`, error);
+        return JSON.parse(value) as T;
+      } catch (error: unknown) {
+        console.error(`Failed to parse ${value}:`, (error as Error).message);
         return defaultValue;
       }
     };
@@ -135,8 +135,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await studentBiodata.save();
 
     res.status(201).json({ message: 'Student biodata saved successfully', data: studentBiodata });
-  } catch (error: any) {
-    console.error('Error saving student biodata:', error);
-    res.status(500).json({ message: 'Internal server error', error: error.message });
+  } catch (error: unknown) { // Line 138: Already 'unknown', ensuring no 'any'
+    console.error('Error saving student biodata:', (error as Error).message);
+    res.status(500).json({ message: 'Internal server error', error: (error as Error).message });
   }
 }

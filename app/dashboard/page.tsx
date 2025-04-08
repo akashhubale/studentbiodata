@@ -2,25 +2,57 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+// Define the Student interface based on the properties used in the code
+interface Student {
+  _id: string;
+  name: string;
+  branch: string;
+  sectionAndRollNo: string;
+  studentEmail?: string;
+  studentMobile?: string;
+  fatherName?: string;
+  hostelName?: string;
+  imageUrl?: string;
+  dateOfBirth?: string;
+  fatherOccupation?: string;
+  permanentAddress?: string;
+  fatherPhoneOffice?: string;
+  residencePhone?: string;
+  fatherMobile?: string;
+  motherMobile?: string;
+  fatherOfficeAddress?: string;
+  fatherEmail?: string;
+  hostelWardenName?: string;
+  hostelPhone?: string;
+  hostelWardenPhone?: string;
+  roommates?: string;
+  localGuardian?: string;
+  localGuardianAddressPhone?: string;
+  outstandingFees?: string;
+  pendingDocuments?: string;
+  profSociety?: string;
+  studentStatus?: string;
+}
+
 export default function FacultyDashboard() {
-  const [students, setStudents] = useState<any[]>([]);
-  const [filtered, setFiltered] = useState<any[]>([]);
-  const [search, setSearch] = useState('');
+  const [students, setStudents] = useState<Student[]>([]);
+  const [filtered, setFiltered] = useState<Student[]>([]);
+  const [search, setSearch] = useState<string>('');
   const [selected, setSelected] = useState<string[]>([]);
   const [viewDetails, setViewDetails] = useState<string | null>(null);
-  const [editStudent, setEditStudent] = useState<any | null>(null);
+  const [editStudent, setEditStudent] = useState<Student | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     fetch('/api/student/all')
       .then(res => res.json())
-      .then(data => {
+      .then((data: Student[]) => {
         setStudents(data);
         setFiltered(data);
       });
   }, []);
 
-  const handleSearch = (e: any) => {
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
     const query = e.target.value.toLowerCase();
     setFiltered(students.filter(s =>
@@ -40,7 +72,7 @@ export default function FacultyDashboard() {
     try {
       const res = await fetch('/api/pdf/generate', {
         method: 'POST',
-        body: JSON.stringify({ ids: studentIds }), // Send IDs, not names
+        body: JSON.stringify({ ids: studentIds }),
         headers: { 'Content-Type': 'application/json' },
       });
 
@@ -49,10 +81,9 @@ export default function FacultyDashboard() {
         throw new Error(errorData.message || 'Failed to generate PDF');
       }
 
-      const { url } = await res.json(); // Expect a JSON response with a URL
+      const { url } = await res.json();
       console.log('Download URL:', url);
 
-      // Trigger download from the URL
       const link = document.createElement('a');
       link.href = url;
       link.download = filename;
@@ -65,7 +96,7 @@ export default function FacultyDashboard() {
     }
   };
 
-  const handleUpdate = async (e: React.FormEvent) => {
+  const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!editStudent) return;
 
@@ -76,7 +107,7 @@ export default function FacultyDashboard() {
     });
 
     if (res.ok) {
-      const updatedStudent = await res.json();
+      const updatedStudent: Student = await res.json();
       setStudents(students.map(s => s._id === updatedStudent._id ? updatedStudent : s));
       setFiltered(filtered.map(s => s._id === updatedStudent._id ? updatedStudent : s));
       setEditStudent(null);

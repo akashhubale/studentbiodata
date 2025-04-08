@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { PDFDocument, rgb, StandardFonts, PDFPage } from 'pdf-lib';
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'; // Removed PDFPage
 import path from 'path';
 import fs from 'fs/promises';
 import dbConnect from '@/lib/dbConnect';
@@ -27,26 +27,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     console.log('Students found:', students.length);
 
-    // Create a new PDF document
     const pdfDoc = await PDFDocument.create();
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
     for (const [index, student] of students.entries()) {
-      const page = pdfDoc.addPage([612, 792]); // US Letter size
+      const page = pdfDoc.addPage([612, 792]);
       console.log(`Processing student ${index + 1}: ${student.name}`);
       console.log('Page dimensions:', { width: page.getWidth(), height: page.getHeight() });
 
       const drawText = (text: string, x: number, y: number, size = 10) => {
-        page.drawText(text || 'N/A', {
-          x,
-          y,
-          size,
-          font,
-          color: rgb(0, 0, 0),
-        });
+        page.drawText(text || 'N/A', { x, y, size, font, color: rgb(0, 0, 0) });
       };
 
-      // Draw student data
       drawText(`Name: ${student.name}`, 50, 750, 12);
       drawText(`Section & Roll No: ${student.sectionAndRollNo}`, 50, 730, 10);
       drawText(`Branch: ${student.branch}`, 50, 710, 10);
@@ -83,23 +75,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           let image;
           try {
             image = await pdfDoc.embedJpg(imageBytes);
-          } catch (e: any) {
-            console.log(`Image is not JPG, trying PNG: ${e.message}`);
+          } catch (e: unknown) { // Fixed: 'any' to 'unknown'
+            console.log(`Image is not JPG, trying PNG: ${(e as Error).message}`);
             image = await pdfDoc.embedPng(imageBytes);
           }
 
           const imgDims = image.scale(0.25);
           const x = 400;
           const y = 700;
-          page.drawImage(image, {
-            x,
-            y,
-            width: imgDims.width,
-            height: imgDims.height,
-          });
+          page.drawImage(image, { x, y, width: imgDims.width, height: imgDims.height });
           console.log(`Image embedded for ${student.name}, dimensions:`, { width: imgDims.width, height: imgDims.height });
-        } catch (imageError: any) {
-          console.error(`Failed to embed image for ${student.name}:`, imageError.message);
+        } catch (imageError: unknown) { // Fixed: 'any' to 'unknown'
+          console.error(`Failed to embed image for ${student.name}:`, (imageError as Error).message);
         }
       }
     }
@@ -122,8 +109,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const downloadUrl = `/downloads/${fileName}`;
     res.status(200).json({ url: downloadUrl });
-  } catch (error: any) {
-    console.error('PDF generation error:', error.message);
-    res.status(500).json({ message: 'Internal Server Error', error: error.message });
+  } catch (error: unknown) { // Fixed: 'any' to 'unknown'
+    console.error('PDF generation error:', (error as Error).message);
+    res.status(500).json({ message: 'Internal Server Error', error: (error as Error).message });
   }
 }
